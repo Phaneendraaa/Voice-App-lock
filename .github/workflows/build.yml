@@ -25,6 +25,9 @@ jobs:
         run: |
           if [ -f scripts/fetch_sherpa.sh ]; then bash scripts/fetch_sherpa.sh; fi
 
+      - name: Unit tests
+        run: gradle :app:testDebugUnitTest --stacktrace
+
       - name: Build
         run: gradle :app:assembleDebug --stacktrace
 

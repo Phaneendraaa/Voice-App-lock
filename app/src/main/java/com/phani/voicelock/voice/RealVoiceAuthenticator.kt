@@ -49,7 +49,7 @@ class RealVoiceAuthenticator(context: Context, private val prefs: Prefs) : Voice
 
     override suspend fun finishEnrollment(): Boolean {
         if (enrolled.isEmpty()) return false
-        prefs.saveVoiceprint(SherpaSpeaker.average(enrolled))
+        prefs.saveVoiceprint(VectorMath.average(enrolled))
         return true
     }
 
@@ -67,7 +67,7 @@ class RealVoiceAuthenticator(context: Context, private val prefs: Prefs) : Voice
             // Always run both checks so a failure doesn't reveal which half failed first.
             val heard = asr.transcribe(audio)
             val wordsOk = PhraseMatcher.matches(expectedPhrase, heard)
-            val score = SherpaSpeaker.cosine(speaker.embed(audio), voiceprint)
+            val score = VectorMath.cosine(speaker.embed(audio), voiceprint)
 
             if (wordsOk && score >= threshold) VerifyResult.Success
             else VerifyResult.Rejected(wordsMatched = wordsOk, voiceScore = score, heard = heard)
