@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.phani.voicelock.lock.LockService
 import com.phani.voicelock.voiceLockApp
 
 private object Routes {
@@ -44,7 +45,10 @@ fun AppNav() {
         composable(Routes.HOME) {
             HomeScreen(
                 vm = vm,
-                onToggleLock = { vm.setLockEnabled(it) },
+                onToggleLock = { on ->
+                    vm.setLockEnabled(on)
+                    if (on) LockService.start(ctx) else LockService.stop(ctx)
+                },
                 onApps = { nav.navigate(Routes.APPS) },
                 onVoice = { nav.navigate(Routes.ENROLL) },
                 onSettings = { nav.navigate(Routes.SETTINGS) },
