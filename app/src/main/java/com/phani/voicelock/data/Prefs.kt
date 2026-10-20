@@ -27,6 +27,11 @@ class Prefs(context: Context) {
         get() = sp.getBoolean("demo_mode", false)
         set(v) = sp.edit { putBoolean("demo_mode", v) }
 
+    /** Shows what the recogniser heard and the voice score after a failed try. For tuning. */
+    var debugInfo: Boolean
+        get() = sp.getBoolean("debug_info", true)
+        set(v) = sp.edit { putBoolean("debug_info", v) }
+
     var passphrase: String
         get() = sp.getString("passphrase", DEFAULT_PASSPHRASE) ?: DEFAULT_PASSPHRASE
         set(v) = sp.edit { putString("passphrase", v.trim().lowercase()) }
@@ -42,7 +47,7 @@ class Prefs(context: Context) {
 
     /** Cosine-similarity threshold for the voiceprint. Higher = stricter. */
     var threshold: Float
-        get() = sp.getFloat("threshold", 0.6f)
+        get() = sp.getFloat("threshold", 0.5f)
         set(v) = sp.edit { putFloat("threshold", v.coerceIn(0.3f, 0.9f)) }
 
     var lockedPackages: Set<String>

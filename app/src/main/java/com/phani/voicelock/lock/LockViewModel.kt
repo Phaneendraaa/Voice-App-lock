@@ -96,6 +96,10 @@ class LockViewModel(application: Application) : AndroidViewModel(application) {
                     if (!r.wordsMatched) append("That wasn't the phrase. ")
                     else append("Your voice wasn't recognised. ")
                     append("Tap the mic to try again.")
+                    if (prefs.debugInfo) {
+                        val score = r.voiceScore?.let { "%.2f".format(it) } ?: "n/a"
+                        append("\n\nDebug: heard “${r.heard.orEmpty()}”\nvoice score $score (needs ${"%.2f".format(prefs.threshold)})")
+                    }
                 },
             )
             is VerifyResult.Failed -> _state.update {

@@ -47,6 +47,7 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit, onRerecord: () -> Unit
     var relock by remember { mutableFloatStateOf(prefs.relockSeconds.toFloat()) }
     var strict by remember { mutableFloatStateOf(prefs.threshold) }
     var demo by remember { mutableStateOf(prefs.demoMode) }
+    var debug by remember { mutableStateOf(prefs.debugInfo) }
     var showPin by remember { mutableStateOf(false) }
     var phraseNote by remember { mutableStateOf<String?>(null) }
 
@@ -132,6 +133,17 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit, onRerecord: () -> Unit
                     )
                 }
                 Switch(checked = demo, onCheckedChange = { demo = it; prefs.demoMode = it })
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("Show debug info on failure", style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        "Shows what was heard and the voice score. Turn off once tuned.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Switch(checked = debug, onCheckedChange = { debug = it; prefs.debugInfo = it })
             }
 
             Divider()
