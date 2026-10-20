@@ -32,7 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.compose.material3.FilterChip
 import com.phani.voicelock.ui.theme.Coral
+import com.phani.voicelock.voice.ModelProfile
 import java.text.DateFormat
 import java.util.Date
 
@@ -48,6 +50,7 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit, onRerecord: () -> Unit
     var strict by remember { mutableFloatStateOf(prefs.threshold) }
     var demo by remember { mutableStateOf(prefs.demoMode) }
     var debug by remember { mutableStateOf(prefs.debugInfo) }
+    var profile by remember { mutableStateOf(prefs.modelProfile) }
     var showPin by remember { mutableStateOf(false) }
     var phraseNote by remember { mutableStateOf<String?>(null) }
 
@@ -116,6 +119,35 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit, onRerecord: () -> Unit
                 valueRange = 0f..300f,
                 steps = 9,
             )
+
+            Divider()
+            Section("Voice models")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ModelProfile.entries.forEach { p ->
+                    FilterChip(
+                        selected = profile == p,
+                        onClick = {
+                            if (profile != p) {
+                                profile = p
+                                prefs.modelProfile = p
+                                vm.refresh()
+                            }
+                        },
+                        label = { Text(p.label) },
+                    )
+                }
+            }
+            Text(
+                profile.description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                "Changing this needs a one-time download and a new voice recording.",
+                style = MaterialTheme.typography.bodySmall,
+                color = Coral,
+            )
+            OutlinedButton(onClick = onRerecord) { Text("Re-record voice") }
 
             Divider()
             Section("Fallback PIN")

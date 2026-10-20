@@ -45,7 +45,12 @@ android {
 
     packaging {
         jniLibs { useLegacyPackaging = true }
-        resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        resources.excludes += listOf(
+            "/META-INF/{AL2.0,LGPL2.1}",
+            "META-INF/LICENSE*",
+            "META-INF/NOTICE*",
+            "META-INF/DEPENDENCIES",
+        )
     }
 }
 
@@ -65,10 +70,10 @@ dependencies {
     implementation("androidx.biometric:biometric:1.1.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
-    // On-device speech-to-text
-    implementation("com.alphacephei:vosk-android:0.3.75")
-    implementation("net.java.dev.jna:jna:5.13.0@aar")
-    // On-device speaker verification. The AAR is fetched by scripts/fetch_sherpa.sh into app/libs.
+    // Unpacks the downloaded Whisper model archive (.tar.bz2)
+    implementation("org.apache.commons:commons-compress:1.26.2")
+    // On-device Whisper speech-to-text and speaker verification (sherpa-onnx).
+    // The AAR is fetched by scripts/fetch_sherpa.sh into app/libs.
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
 
     testImplementation("junit:junit:4.13.2")

@@ -8,13 +8,13 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 /**
- * The real check: words via Vosk AND voice via a sherpa-onnx speaker embedding.
+ * The real check: words via Whisper AND voice via a sherpa-onnx speaker embedding.
  * Unlock needs both to pass.
  */
 class RealVoiceAuthenticator(context: Context, private val prefs: Prefs) : VoiceAuthenticator {
-    private val models = ModelManager(context)
+    private val models = ModelManager(context, prefs.modelProfile)
     private val lock = Mutex()
-    private var asr: VoskAsr? = null
+    private var asr: WhisperAsr? = null
     private var speaker: SherpaSpeaker? = null
     private val enrolled = mutableListOf<FloatArray>()
 
@@ -22,7 +22,7 @@ class RealVoiceAuthenticator(context: Context, private val prefs: Prefs) : Voice
         lock.withLock {
             runCatching {
                 if (!models.isReady()) throw ModelsMissingException()
-                if (asr == null) asr = VoskAsr(models.voskDir)
+                if (asr == null) asr = WhisperAsr(models)
                 if (speaker == null) speaker = SherpaSpeaker(models.speakerFile)
             }
         }

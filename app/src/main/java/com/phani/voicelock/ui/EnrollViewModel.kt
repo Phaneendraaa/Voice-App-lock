@@ -58,7 +58,7 @@ class EnrollViewModel(application: Application) : AndroidViewModel(application) 
         if (_state.value.phase == Phase.Downloading) return
         _state.update { it.copy(phase = Phase.Downloading, progress = 0f, message = "Starting…", error = null) }
         job = viewModelScope.launch {
-            val result = ModelManager(app).ensure { p, label ->
+            val result = ModelManager(app, app.prefs.modelProfile).ensure { p, label ->
                 _state.update { s -> s.copy(progress = p, message = label) }
             }
             result.onFailure { e ->

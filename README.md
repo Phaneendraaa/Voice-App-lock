@@ -6,8 +6,8 @@ An Android app locker you open with your voice. Pick the apps to protect; when o
 
 Both checks must pass:
 
-1. **Right words.** Vosk (offline speech-to-text) must hear your phrase, and the random digits **exactly**. The digits change every time, so a replayed recording of an earlier unlock won't match.
-2. **Right voice.** sherpa-onnx turns your speech into a voiceprint (WeSpeaker ResNet34) and compares it with the one saved at enrollment (cosine similarity, default threshold 0.60).
+1. **Right words.** Whisper (offline speech-to-text via sherpa-onnx) must hear your phrase, and the random digits **exactly**. The digits change every time, so a replayed recording of an earlier unlock won't match.
+2. **Right voice.** sherpa-onnx turns your speech into a voiceprint (WeSpeaker ResNet293 or ResNet221) and compares it with the one saved at enrollment (cosine similarity, default threshold 0.60).
 
 Fallbacks: a PIN (4-8 digits, PBKDF2) and fingerprint. After 3 failed voice tries the lock screen switches to PIN; 5 wrong PINs lock it for 30 seconds. Failed attempts are logged in Settings.
 
@@ -15,7 +15,7 @@ Fallbacks: a PIN (4-8 digits, PBKDF2) and fingerprint. After 3 failed voice trie
 
 - Kotlin, Jetpack Compose, Material 3
 - Detection: `UsageStatsManager` polling in a foreground service (400 ms), lock screen as a full-screen `LockActivity`
-- Voice: Vosk (`vosk-android`) and sherpa-onnx (AAR)
+- Voice: Whisper small.en / base.en and WeSpeaker, both run by sherpa-onnx (AAR). Pick *Balanced* or *Max accuracy* in Settings.
 - Voiceprint stored encrypted with the Android Keystore (AES-GCM)
 
 ## Build
@@ -29,7 +29,7 @@ gradle :app:assembleDebug           # or open the folder in Android Studio and p
 
 CI (`.github/workflows/build.yml`) does the same and uploads `app-debug.apk` as a build artifact. Open the latest run under the **Actions** tab to download it.
 
-First launch: grant the permissions, set a PIN, then tap **Download models** (about 60 MB, once). After that the app works offline.
+First launch: grant the permissions, set a PIN, then tap **Download models** (about 720 MB for Max accuracy, 300 MB for Balanced; once, use Wi-Fi). After that the app works offline.
 
 ## Setup on the phone
 
@@ -54,7 +54,7 @@ First launch: grant the permissions, set a PIN, then tap **Download models** (ab
 ```
 app/src/main/java/com/phani/voicelock/
   data/    Prefs, SecureStore (Keystore), AppRepository
-  voice/   AudioRecorder, VoskAsr, SherpaSpeaker, RealVoiceAuthenticator,
+  voice/   AudioRecorder, WhisperAsr, SherpaSpeaker, RealVoiceAuthenticator,
            MockVoiceAuthenticator, ModelManager, PhraseMatcher, Challenge, VectorMath
   lock/    LockService, LockActivity, LockViewModel, LockScreen, LockState, BootReceiver
   ui/      Onboarding, Enroll, Home, Apps, Settings screens + navigation
@@ -63,4 +63,4 @@ app/src/main/java/com/phani/voicelock/
 ## Models and licenses
 
 Models are downloaded at runtime from their official sources, not bundled:
-Vosk `vosk-model-small-en-in-0.4` (alphacephei.com) and WeSpeaker `wespeaker_en_voxceleb_resnet34.onnx` (k2-fsa/sherpa-onnx releases). Check each project's license before distributing the app commercially.
+Whisper (OpenAI, MIT) int8 exports and WeSpeaker models, both from the k2-fsa/sherpa-onnx releases. Check each project's license before distributing the app commercially.

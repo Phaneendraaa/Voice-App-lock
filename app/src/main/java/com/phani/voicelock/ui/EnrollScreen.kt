@@ -74,7 +74,7 @@ fun EnrollScreen(onBack: () -> Unit, onFinished: () -> Unit, vm: EnrollViewModel
                     Text("One-time download", style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "VoiceLock needs two small voice models (about 60 MB). After this it works fully offline, " +
+                        "VoiceLock needs two voice models (about ${prefs.modelProfile.approxMb} MB, ${prefs.modelProfile.label} setting). Use Wi-Fi. After this it works fully offline, " +
                             "and your voice never leaves the phone.",
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,

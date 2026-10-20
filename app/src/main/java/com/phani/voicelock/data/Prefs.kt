@@ -3,6 +3,7 @@ package com.phani.voicelock.data
 import android.content.Context
 import android.util.Base64
 import androidx.core.content.edit
+import com.phani.voicelock.voice.ModelProfile
 import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.crypto.SecretKeyFactory
@@ -32,6 +33,12 @@ class Prefs(context: Context) {
         get() = sp.getBoolean("debug_info", true)
         set(v) = sp.edit { putBoolean("debug_info", v) }
 
+    /** Which speech + voice model pair is used. Changing it invalidates the saved voiceprint. */
+    var modelProfile: ModelProfile
+        get() = runCatching { ModelProfile.valueOf(sp.getString("model_profile", null) ?: "") }
+            .getOrDefault(ModelProfile.MAX)
+        set(v) = sp.edit { putString("model_profile", v.name) }
+
     var passphrase: String
         get() = sp.getString("passphrase", DEFAULT_PASSPHRASE) ?: DEFAULT_PASSPHRASE
         set(v) = sp.edit { putString("passphrase", v.trim().lowercase()) }
@@ -60,18 +67,24 @@ class Prefs(context: Context) {
 
     // ---- Voiceprint (encrypted) ----
 
-    val hasVoiceprint: Boolean get() = sp.contains("voiceprint")
+    /** A voiceprint only counts if it was made with the model profile that is selected now. */
+    val hasVoiceprint: Boolean
+        get() = sp.contains("voiceprint") && sp.getString("voiceprint_profile", null) == modelProfile.name
 
     fun saveVoiceprint(v: FloatArray) {
-        sp.edit { putString("voiceprint", SecureStore.encrypt(SecureStore.floatsToBytes(v))) }
+        sp.edit {
+            putString("voiceprint", SecureStore.encrypt(SecureStore.floatsToBytes(v)))
+            putString("voiceprint_profile", modelProfile.name)
+        }
     }
 
     fun loadVoiceprint(): FloatArray? {
+        if (!hasVoiceprint) return null
         val enc = sp.getString("voiceprint", null) ?: return null
         return runCatching { SecureStore.bytesToFloats(SecureStore.decrypt(enc)) }.getOrNull()
     }
 
-    fun clearVoiceprint() = sp.edit { remove("voiceprint") }
+    fun clearVoiceprint() = sp.edit { remove("voiceprint"); remove("voiceprint_profile") }
 
     // ---- Fallback PIN (PBKDF2, salted) ----
 
