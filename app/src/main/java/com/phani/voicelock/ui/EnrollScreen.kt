@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -66,6 +67,31 @@ fun EnrollScreen(onBack: () -> Unit, onFinished: () -> Unit, vm: EnrollViewModel
                     CircularProgressIndicator()
                     Spacer(Modifier.height(12.dp))
                     Text("Starting voice engine…", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+
+                state.phase == Phase.NeedsModels -> {
+                    Spacer(Modifier.height(32.dp))
+                    Text("One-time download", style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "VoiceLock needs two small voice models (about 60 MB). After this it works fully offline, " +
+                            "and your voice never leaves the phone.",
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    state.error?.let {
+                        Spacer(Modifier.height(12.dp))
+                        Text(it, color = Coral, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall)
+                    }
+                    Spacer(Modifier.height(20.dp))
+                    Button(onClick = vm::downloadModels, modifier = Modifier.fillMaxWidth()) { Text("Download models") }
+                }
+
+                state.phase == Phase.Downloading -> {
+                    Spacer(Modifier.height(48.dp))
+                    LinearProgressIndicator(progress = { state.progress }, modifier = Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(12.dp))
+                    Text(state.message ?: "", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
 
                 else -> {

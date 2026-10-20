@@ -42,7 +42,7 @@ class Prefs(context: Context) {
 
     /** Cosine-similarity threshold for the voiceprint. Higher = stricter. */
     var threshold: Float
-        get() = sp.getFloat("threshold", 0.55f)
+        get() = sp.getFloat("threshold", 0.6f)
         set(v) = sp.edit { putFloat("threshold", v.coerceIn(0.3f, 0.9f)) }
 
     var lockedPackages: Set<String>

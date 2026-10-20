@@ -90,7 +90,8 @@ class LockViewModel(application: Application) : AndroidViewModel(application) {
         when (val r = auth.verify(audio, challenge.expected, prefs.threshold)) {
             is VerifyResult.Success -> unlock()
             is VerifyResult.Rejected -> fail(
-                reason = if (!r.wordsMatched) "Words didn't match" else "Voice didn't match",
+                reason = (if (!r.wordsMatched) "Words didn't match" else "Voice didn't match") +
+                    (r.voiceScore?.let { " (score ${"%.2f".format(it)})" } ?: ""),
                 detail = buildString {
                     if (!r.wordsMatched) append("That wasn't the phrase. ")
                     else append("Your voice wasn't recognised. ")

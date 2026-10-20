@@ -53,4 +53,12 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.8.1")
     implementation("androidx.biometric:biometric:1.1.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
+
+    // On-device speech-to-text
+    implementation("com.alphacephei:vosk-android:0.3.75")
+    implementation("net.java.dev.jna:jna:5.13.0@aar")
+    // On-device speaker verification. The AAR is fetched by scripts/fetch_sherpa.sh into app/libs.
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
+
+    testImplementation("junit:junit:4.13.2")
 }

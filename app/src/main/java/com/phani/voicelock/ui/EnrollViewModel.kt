@@ -5,18 +5,21 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.phani.voicelock.VoiceLockApp
 import com.phani.voicelock.voice.AudioRecorder
+import com.phani.voicelock.voice.ModelManager
+import com.phani.voicelock.voice.ModelsMissingException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-enum class Phase { Preparing, Idle, Listening, Processing, Done }
+enum class Phase { Preparing, NeedsModels, Downloading, Idle, Listening, Processing, Done }
 
 data class EnrollState(
     val phase: Phase = Phase.Preparing,
     val samplesDone: Int = 0,
     val level: Float = 0f,
+    val progress: Float = 0f,
     val message: String? = null,
     val error: String? = null,
 )
@@ -34,13 +37,42 @@ class EnrollViewModel(application: Application) : AndroidViewModel(application) 
 
     init {
         auth.resetEnrollment()
-        viewModelScope.launch {
-            auth.prepare().fold(
-                onSuccess = { _state.update { it.copy(phase = Phase.Idle) } },
-                onFailure = { e ->
-                    _state.update { it.copy(phase = Phase.Idle, error = e.message ?: "Voice engine could not start.") }
-                },
-            )
+        viewModelScope.launch { prepareEngine() }
+    }
+
+    private suspend fun prepareEngine() {
+        auth.prepare().fold(
+            onSuccess = { _state.update { it.copy(phase = Phase.Idle, error = null) } },
+            onFailure = { e ->
+                _state.update {
+                    it.copy(
+                        phase = Phase.NeedsModels,
+                        error = if (e is ModelsMissingException) null else (e.message ?: "Voice engine could not start."),
+                    )
+                }
+            },
+        )
+    }
+
+    fun downloadModels() {
+        if (_state.value.phase == Phase.Downloading) return
+        _state.update { it.copy(phase = Phase.Downloading, progress = 0f, message = "Starting…", error = null) }
+        job = viewModelScope.launch {
+            val result = ModelManager(app).ensure { p, label ->
+                _state.update { s -> s.copy(progress = p, message = label) }
+            }
+            result.onFailure { e ->
+                _state.update {
+                    it.copy(
+                        phase = Phase.NeedsModels,
+                        message = null,
+                        error = "Download failed: ${e.message ?: "unknown error"}. Check your connection and try again.",
+                    )
+                }
+                return@launch
+            }
+            _state.update { it.copy(message = null) }
+            prepareEngine()
         }
     }
 
@@ -71,7 +103,9 @@ class EnrollViewModel(application: Application) : AndroidViewModel(application) 
 
     fun cancel() {
         job?.cancel()
-        _state.update { if (it.phase == Phase.Listening || it.phase == Phase.Processing) it.copy(phase = Phase.Idle, level = 0f) else it }
+        _state.update {
+            if (it.phase == Phase.Listening || it.phase == Phase.Processing) it.copy(phase = Phase.Idle, level = 0f) else it
+        }
     }
 
     override fun onCleared() {
